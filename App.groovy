@@ -16,6 +16,11 @@
 
 package webapp
 
+import org.cloudfoundry.runtime.env.CloudEnvironment
+import org.cloudfoundry.runtime.env.MongoServiceInfo
+
+def cloudEnv = new CloudEnvironment()
+
 // Our application config - you can maintain it here or alternatively you could
 // stick it in a conf.json text file and specify that on the command line when
 // starting this verticle
@@ -25,9 +30,9 @@ def webServerConf = [
 
   // Normal web server stuff
 
-  port: 8080,
-  host: 'localhost',
-  ssl: true,
+  port: (cloudEnv.getValue('VCAP_APP_PORT') ?: '8080') as int,
+  host: cloudEnv.getValue('VCAP_APP_HOST') ?: 'localhost',
+  /* ssl: true, */
 
   // Configuration for the event bus client side bridge
   // This bridges messages from the client side to the server side event bus
@@ -65,13 +70,25 @@ def webServerConf = [
   ]
 ]
 
+// Configuration for MongoDb 
+def mongoConf = [:]
+
+if (cloudEnv.isCloudFoundry()) {
+  mongoSvcInfo = cloudEnv.getServiceInfo("mongodb-vtoons", MongoServiceInfo.class)
+  mongoConf.host = mongoSvcInfo.getHost()
+  mongoConf.port = mongoSvcInfo.getPort() as int
+  mongoConf.db_name = mongoSvcInfo.getDatabase()
+  mongoConf.username = mongoSvcInfo.getUserName()
+  mongoConf.password = mongoSvcInfo.getPassword()
+}
+
 // Now we deploy the modules that we need
 
 container.with {
 
   // Deploy a MongoDB persistor module
 
-  deployModule('vertx.mongo-persistor-v1.0') {
+  deployModule('vertx.mongo-persistor-v1.0', mongoConf, 1) {
 
     // And when it's deployed run a script to load it with some reference
     // data for the demo
