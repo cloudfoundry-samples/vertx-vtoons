@@ -18,7 +18,7 @@ configurations {
 
 dependencies {
   framework "vertx.io:vert.x:${vertxVersion}@zip"
-  jars "org.cloudfoundry:cloudfoundry-runtime:0.8.1"
+  jars "org.cloudfoundry:cloudfoundry-runtime:0.8.2"
 }
 
 task runtime(type: Copy) {
@@ -60,7 +60,7 @@ Gradle CloudFoundry plugin configuration.
 
 Set your credentials with the -P option when you run gradle cf- commands like this:
 
-  ./gradlw cf-push -PcfUser=username@email.com -PcfPasswd=secret
+  ./gradlew cf-push -PcfUser=username@email.com -PcfPasswd=secret
 
 NOTE: You need to pick a different uri for the app since they have to be unique
       and the current one is already taken.
@@ -97,5 +97,5 @@ cloudfoundry {
 cloudfoundryService {
   serviceName = 'mongodb-vtoons'
   vendor = 'mongodb'
-  version = '1.8'
+  version = '2.0'
 }
