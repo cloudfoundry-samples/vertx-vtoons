@@ -2,6 +2,8 @@
 
 This is a sample project that shows how to run a vert.x application on CloudFoundry. The running application can be seen at [http://vtoons.cloudfoundry.com/](http://vtoons.cloudfoundry.com/).
 
+> NOTE: This sample has been tested using cloudfoundry-runtime 0.8.2 and vert.x 1.2.3.final (Jan 2, 2013)
+
 ## vert.x
 
 [vert.x](http://vertx.io/) is a framework for for developing asynchronous event-driven applications in a variety of languages, including JavaScript, Ruby, Groovy, Java, Python and Coffeescript.
