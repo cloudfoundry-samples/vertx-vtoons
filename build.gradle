@@ -79,8 +79,8 @@ buildscript {
 apply plugin: 'cloudfoundry'
 
 cloudfoundry {
-  username = "${cfUser}"
-  password = "${cfPasswd}"
+  username = rootProject.hasProperty('cfUser') ? rootProject.cfUser : ''
+  password = rootProject.hasProperty('cfPasswd') ? rootProject.cfPasswd : ''
 
   application = 'vtoons'
   framework = 'standalone'
