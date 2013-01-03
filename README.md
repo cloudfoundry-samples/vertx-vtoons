@@ -31,25 +31,27 @@ We can add support to detect runtime environment settings using the [Java cloudf
 
 #### Web Server
 
-For simplicity, the configuration of the web server in the tutorial application is hard-coded to `localhost:8080`:
+For simplicity, the configuration of the web server in the tutorial application is hard-coded to 'localhost:8080':
 
     def webServerConf = [
         port: 8080,
         host: 'localhost',
-    
+        ssl: true,
     ...
     
     ]
 
-In order to run on CloudFoundry, the application must use the host name and port provided by CloudFoundry. This code reads the host name and port from the CloudEnvironment instance, defaulting to `localhost:8080` if the CloudFoundry environment is not detected:
+In order to run on CloudFoundry, the application must use the host name and port provided by CloudFoundry. This code reads the host name and port from the CloudEnvironment instance, defaulting to 'localhost:8080' if the CloudFoundry environment is not detected:
 
     def webServerConf = [
         port: (cloudEnv.getValue('VCAP_APP_PORT') ?: '8080') as int,
         host: cloudEnv.getValue('VCAP_APP_HOST') ?: 'localhost',
-    
+        /* ssl: true, */
     ...
     
     ]
+
+Note: In order to simplify this example, the SSL support was removed from the application.
 
 #### MongoDB
 
@@ -69,68 +71,97 @@ When the application is pushed to CloudFoundry, it is bound to a MongoDB service
       mongoConf.password = mongoSvcInfo.getPassword()
     }
 
-### SSL
-
-SSL and HTTPS on CloudFoundry is tricky. In order to simplify this example, the SSL support was removed from the example application. 
-
 ### vert.x Distribution
 
-A full vert.x distribution (available on the [Downloads](http://vertx.io/downloads.html) page of the vert.x web site) must be pushed to CloudFoundry along with the application. This project has a `vert.x` directory where you will need to copy the following directories from your downloaded vert.x distribution:
+A full vert.x distribution (available on the [Downloads](http://vertx.io/downloads.html) page of the vert.x web site) must be pushed to CloudFoundry along with the application (we used the 1.2.3.final version of vert.x for this app). This project uses the following directories from your downloaded vert.x distribution:
 
 * bin
 * conf
 * lib
 
-We are also using the [Java cloudfoundry-runtime so we need to download this jar](https://repo.springsource.org/simple/libs-milestone-s3-cache/org/cloudfoundry/cloudfoundry-runtime/0.8.1/cloudfoundry-runtime-0.8.1.jar)  and put it in the vert.x/lib directory that we just created.
+We are also using the [Java cloudfoundry-runtime so we need to include this jar](https://repo.springsource.org/simple/libs-milestone-s3-cache/org/cloudfoundry/cloudfoundry-runtime/0.8.1/cloudfoundry-runtime-0.8.2.jar).
+
+### vert.x module
+
+To simplify the packaging we will move the application code to a vert.x module in the 'src' directory. This includes adding a mod.json file listing the main application file. You can see this change in this [commit](https://github.com/cloudfoundry-samples/vertx-vtoons/commit/54e927f4e6191453d4607fedcc933e205eaf606a) in the repository.
+
+### Gradle build script
+
+While we could package the application by copying a few directories from vert.x distribution and then using ‘vmc push’ as usual, let’s simplify by creating a Gradle build script as seen [here](https://github.com/cloudfoundry-samples/vertx-vtoons/blob/master/build.gradle).
+
+This build script provides the following:
+
+* Defines repository locations for Maven Central, Spring milestone releases and vert.x release distributions
+* Defines two configurations, one for runtime and one for dependent jars, as well as their dependencies
+* Provides a “runtime” task that downloads and packages the vert/x runtime
+* Provides a “build” task that packages the app source into a module directory
+* Provides an “assemble” task packages the application as a zip file to be deployed
+* Provides a “clean” task to clean up the build directory
+* Configures the Gradle CloudFoundry plugin so we can use the build script to deploy the app
 
 ## Pushing the Application to CloudFoundry
 
-Since this sample application uses Groovy, no compilation of the application files is required. The application files, along with the vert.x distribution can be pushed to CloudFoundry using the `vmc push` command: 
+With everything in place, let’s just build and deploy the app:
 
-    > vmc push vtoons
-    Would you like to deploy from the current directory? [Yn]: y
-    Detected a Standalone Application, is this correct? [Yn]: y
-    1: java
-    2: java7
-    3: node
-    4: node06
-    5: ruby18
-    6: ruby19
-    Select Runtime [ruby18]: 2
-    Selected java7
-    Start Command: vert.x/bin/vertx run App.groovy
-    Application Deployed URL [None]: vtoons.cloudfoundry.com
-    Memory reservation (128M, 256M, 512M, 1G, 2G) [64M]: 256M
-    How many instances? [1]: 
-    Bind existing services to 'vt2'? [yN]: n
-    Create services to bind to 'vt2'? [yN]: y
-    1: mongodb
-    2: mysql
-    3: postgresql
-    4: rabbitmq
-    5: redis
-    What kind of service?: 1
-    Specify the name of the service [mongodb-771fd]: mongodb-vtoons
-    Create another? [yN]: n
-    Would you like to save this configuration? [yN]: y
-    Manifest written to manifest.yml.
-    Creating Application: OK
-    Binding Service [mongodb-vtoons]: OK
-    Uploading Application:
-        Checking for available resources: OK
-        Processing resources: OK
-        Packing application: OK
-        Uploading (43K): OK   
-    Push Status: OK
-    Staging Application 'vtoons': OK                                                   
-    Starting Application 'vtoons': OK
+    $ ./gradlew assemble
+    :runtime
+    Download http://vertx.io/downloads/vert.x-1.2.3.final.zip
+    :build
+    Download http://repo.springsource.org/libs-snapshot/org/cloudfoundry/cloudfoundry-runtime/0.8.2/cloudfoundry-runtime-0.8.2.pom
+    :assemble
 
-The important responses the `vmc push` prompts are these:
+    BUILD SUCCESSFUL
 
-* Choose `Standalone Application`
-* Choose `java7` runtime
-* Set the `Start Command` as shown
-* Set the `Memory reservation` to at least `256M`
-* Create a new MongoDB service to bind the application to
+    Total time: 18.586 secs
 
-Note that if you copy this project and try to push it, you will have to change the url to something other than `vtoons.cloudfoundry.com`.
+    $ ./gradlew cf-add-service -PcfUser=user@email.com -PcfPasswd=secret
+    :cf-add-service
+    CloudFoundry - Connecting to 'http://api.cloudfoundry.com' with user 'user@email.com'
+    CloudFoundry - Provisioning mongodb service 'mongodb-vtoons'
+
+    BUILD SUCCESSFUL
+
+    Total time: 7.435 secs
+
+    $ ./gradlew cf-push -PcfUser=user@email.com -PcfPasswd=secret
+    :cf-push
+    CloudFoundry - Connecting to 'http://api.cloudfoundry.com' with user 'user@email.com'
+    GET request for "http://api.cloudfoundry.com/apps/vtoons" resulted in 404 (Not Found); invoking error handler
+    CloudFoundry - Creating standalone application 'vtoons' with runtime java7
+    CloudFoundry - Deploying '/Users/trisberg/Projects/github/cloudfoundry-samples/vertx-vtoons/build/vertx-vtoons.zip'
+    CloudFoundry - Starting 'vtoons'
+
+    BUILD SUCCESSFUL
+
+    Total time: 21.358 secs
+
+
+If you prefer to create your own zip file and use vmc for deployments here are some hints:
+
+The zip file layout used is the following (only showing directories and some application files):
+
+    +- mods
+       +- vtoons
+          +- lib
+             cloudfoundry-runtime-0.8.2.jar
+          +- web
+             +- css
+             +- js
+             +- js3rdparty
+             index.html
+          App.groovy
+          mod.json
+          server-keystore.jks
+          StaticData.groovy
+    +- vert.x-1.2.3.final
+       (the vert.x distribution)
+
+The 'vmc push' choices would be these:
+
+* Choose 'Standalone Application'
+* Choose 'java7' runtime
+* Set the 'Start Command' to 'vert.x-1.2.3.final/bin/vertx runmod vtoons'
+* Set the 'Memory reservation' to at least '256M'
+* Set the url to something other than 'vtoons.cloudfoundry.com' since that is taken
+* Create a new MongoDB service named 'mongodb-vtoons' to bind to the application
+
