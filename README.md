@@ -85,6 +85,19 @@ We are also using the [Java cloudfoundry-runtime so we need to download this jar
 
 ## Pushing the Application to CloudFoundry
 
+### Using Gradle
+
+The CloudFoundry Gradle plugin configuration can be found in the 'build.gradle' file.
+
+Set your credentials with the -P option when you run gradle cf- commands like this:
+
+    ./gradlew cf-push -PcfUser=username@email.com -PcfPasswd=secret
+
+NOTE: You need to pick a different uri for the app since they have to be unique
+      and the current one is already taken.
+
+### Using 'vmc'
+
 Since this sample application uses Groovy, no compilation of the application files is required. The application files, along with the vert.x distribution can be pushed to CloudFoundry using the `vmc push` command: 
 
     > vmc push vtoons
