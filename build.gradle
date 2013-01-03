@@ -1,3 +1,15 @@
+buildscript {
+  repositories {
+	mavenCentral()
+	mavenRepo url:'http://repo.springsource.org/libs-snapshot'
+  }
+  dependencies {
+	classpath group: 'org.gradle.api.plugins', name: 'gradle-cf-plugin', version: '0.2.0'
+  }
+}
+
+apply plugin: 'cloudfoundry'
+
 def buildDir = 'build'
 def workDir = "${buildDir}/work"
 def appZip = 'vertx-vtoons.zip'
@@ -18,7 +30,7 @@ configurations {
 
 dependencies {
   framework "vertx.io:vert.x:${vertxVersion}@zip"
-  jars "org.cloudfoundry:cloudfoundry-runtime:0.8.2"
+  jars "org.cloudfoundry:cloudfoundry-runtime:$cfRuntimeVersion"
 }
 
 task runtime(type: Copy) {
@@ -43,6 +55,7 @@ task build(type: Copy, dependsOn: 'runtime') {
 }
 
 task assemble(type: Zip, dependsOn: 'build') {
+  description = 'Assemble project'
   destinationDir = file("${buildDir}")
   outputs.dir destinationDir
   archiveName = "${appZip}"
@@ -53,7 +66,10 @@ task clean(type: Delete) {
   delete "${buildDir}"
 }
 
-task wrapper(type: Wrapper) { gradleVersion = "1.1" }
+project.tasks.'cf-push'.dependsOn 'assemble'
+project.tasks.'cf-update'.dependsOn 'assemble'
+
+task wrapper(type: Wrapper) { gradleVersion = "$gradleVersion" }
 
 /*
 Gradle CloudFoundry plugin configuration.
@@ -66,17 +82,8 @@ NOTE: You need to pick a different uri for the app since they have to be unique
       and the current one is already taken.
 */
 
-buildscript {
-  repositories {
-    mavenCentral()
-    mavenRepo url:'http://repo.springsource.org/libs-snapshot'
-  }
-  dependencies {
-    classpath group: 'org.gradle.api.plugins', name: 'gradle-cf-plugin', version: '0.2.0'
-  }
-}
-
-apply plugin: 'cloudfoundry'
+if (!project.hasProperty('cfUser')) project.ext.cfUser = ''
+if (!project.hasProperty('cfPasswd')) project.ext.cfPasswd = ''
 
 cloudfoundry {
   username = "${cfUser}"
@@ -86,7 +93,7 @@ cloudfoundry {
   framework = 'standalone'
   runtime = 'java7'
   memory = 256
-  uris = ['vtoons.cloudfoundry.com']
+  uris = ["vtoons-pid-1.cloudfoundry.com"]
 
   services = ['mongodb-vtoons']
 
