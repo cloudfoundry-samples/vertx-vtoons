@@ -2,7 +2,7 @@
 
 This is a sample project that shows how to run a vert.x application on CloudFoundry. The running application can be seen at [http://vtoons.cloudfoundry.com/](http://vtoons.cloudfoundry.com/).
 
-> NOTE: This sample has been tested using cloudfoundry-runtime 0.8.2 and vert.x 1.2.3.final (Jan 2, 2013)
+> NOTE: This sample has been tested using cloudfoundry-runtime 0.8.2 and vert.x 1.3.0.final (Jan 3, 2013)
 
 ## vert.x
 
@@ -132,5 +132,7 @@ The important responses the `vmc push` prompts are these:
 * Set the `Start Command` as shown
 * Set the `Memory reservation` to at least `256M`
 * Create a new MongoDB service to bind the application to
+
+### Important!
 
 Note that if you copy this project and try to push it, you will have to change the url to something other than `vtoons.cloudfoundry.com`.
