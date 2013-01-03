@@ -2,7 +2,7 @@
 
 This is a sample project that shows how to run a vert.x application on CloudFoundry. The running application can be seen at [http://vtoons.cloudfoundry.com/](http://vtoons.cloudfoundry.com/).
 
-> NOTE: This sample has been tested using cloudfoundry-runtime 0.8.2 and vert.x 1.2.3.final (Jan 2, 2013)
+> NOTE: This sample has been tested using cloudfoundry-runtime 0.8.2 and vert.x 1.3.0.final (Jan 3, 2013)
 
 ## vert.x
 
@@ -85,6 +85,19 @@ We are also using the [Java cloudfoundry-runtime so we need to download this jar
 
 ## Pushing the Application to CloudFoundry
 
+### Using Gradle
+
+The CloudFoundry Gradle plugin configuration can be found in the 'build.gradle' file.
+
+Set your credentials with the -P option when you run gradle cf- commands like this:
+
+    ./gradlew cf-push -PcfUser=username@email.com -PcfPasswd=secret
+
+NOTE: You need to pick a different uri for the app since they have to be unique
+      and the current one is already taken.
+
+### Using 'vmc'
+
 Since this sample application uses Groovy, no compilation of the application files is required. The application files, along with the vert.x distribution can be pushed to CloudFoundry using the `vmc push` command: 
 
     > vmc push vtoons
@@ -132,5 +145,7 @@ The important responses the `vmc push` prompts are these:
 * Set the `Start Command` as shown
 * Set the `Memory reservation` to at least `256M`
 * Create a new MongoDB service to bind the application to
+
+### Important!
 
 Note that if you copy this project and try to push it, you will have to change the url to something other than `vtoons.cloudfoundry.com`.
