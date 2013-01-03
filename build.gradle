@@ -93,7 +93,7 @@ cloudfoundry {
   framework = 'standalone'
   runtime = 'java7'
   memory = 256
-  uris = ["vtoons-pid-1.cloudfoundry.com"]
+  uris = ["vtoons-CHANGEME.cloudfoundry.com"]
 
   services = ['mongodb-vtoons']
 
