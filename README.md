@@ -114,7 +114,8 @@ With everything in place, let’s just build and deploy the app:
 
     Total time: 18.586 secs
 
-    $ ./gradlew cf-add-service -PcfUser=user@email.com -PcfPasswd=secret
+
+    $ ./gradlew cf-add-service -PcfUser=user@email.com -PcfPasswd=secret -PcfTargetBase=cloudfoundry.com
     :cf-add-service
     CloudFoundry - Connecting to 'http://api.cloudfoundry.com' with user 'user@email.com'
     CloudFoundry - Provisioning mongodb service 'mongodb-vtoons'
@@ -123,7 +124,7 @@ With everything in place, let’s just build and deploy the app:
 
     Total time: 7.435 secs
 
-    $ ./gradlew cf-push -PcfUser=user@email.com -PcfPasswd=secret
+    $ ./gradlew cf-push -PcfUser=user@email.com -PcfPasswd=secret -PcfTargetBase=cloudfoundry.com
     :cf-push
     CloudFoundry - Connecting to 'http://api.cloudfoundry.com' with user 'user@email.com'
     GET request for "http://api.cloudfoundry.com/apps/vtoons" resulted in 404 (Not Found); invoking error handler
@@ -134,6 +135,10 @@ With everything in place, let’s just build and deploy the app:
     BUILD SUCCESSFUL
 
     Total time: 21.358 secs
+
+
+Of course, change cloudfoundry.com to reflect the base of your domain, for example mydm.cloudfoundry.me
+It will use vcap.me if cfTargetBase argument value is not provided on the command line
 
 
 If you prefer to create your own zip file and use vmc for deployments here are some hints:
