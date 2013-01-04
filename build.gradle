@@ -60,10 +60,10 @@ Gradle CloudFoundry plugin configuration.
 
 Set your credentials with the -P option when you run gradle cf- commands like this:
 
-  ./gradlew cf-push -PcfUser=username@email.com -PcfPasswd=secret
+  ./gradlew cf-push -PcfUser=username@email.com -PcfPasswd=secret -PcfTargetBase=mytestdomain.cloudfoundry.me
 
-NOTE: You need to pick a different uri for the app since they have to be unique
-      and the current one is already taken.
+NOTE: -PcfTargetBase argument requires a domain name without the 'api.'.  Also if you did not provide any, it will use vcap.me, which should work for offline mcf mode 
+      
 */
 
 buildscript {
@@ -81,15 +81,16 @@ apply plugin: 'cloudfoundry'
 cloudfoundry {
   username = rootProject.hasProperty('cfUser') ? rootProject.cfUser : ''
   password = rootProject.hasProperty('cfPasswd') ? rootProject.cfPasswd : ''
-
+  targetBase = rootProject.hasProperty('cfTargetBase') ? rootProject.cfTargetBase : 'vcap.me'
+  target = 'http://'+'api.'+targetBase
+   
   application = 'vtoons'
   framework = 'standalone'
   runtime = 'java7'
   memory = 256
-  uris = ['vtoons.cloudfoundry.com']
+  uris = [application+'.'+targetBase]
 
   services = ['mongodb-vtoons']
-
   file = file("${buildDir}/${appZip}")
   command = "vert.x-${vertxVersion}/bin/vertx runmod vtoons"
 }
